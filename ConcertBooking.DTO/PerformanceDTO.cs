@@ -2,7 +2,7 @@
 {
     public class PerformanceDTO
     {
-        public int ID { get; set; } = 0!;
+        public int Id { get; set; } = 0!;
         public DateTime PerformanceDate { get; set; }
         public string Venue { get; set; } = null!;
         public string City { get; set; } = null!;
