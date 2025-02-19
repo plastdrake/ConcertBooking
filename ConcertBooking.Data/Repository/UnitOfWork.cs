@@ -27,6 +27,7 @@ namespace ConcertBooking.Data.Repository
         public void Dispose()
         {
             context.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public async Task<int> SaveChangesAsync()
