@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ConcertBooking.Data.DTO;
 using ConcertBooking.Data.Entity;
 using ConcertBooking.Data.Repository;
 using ConcertBooking.DTO;
@@ -95,7 +96,7 @@ namespace ConcertBooking.API.Controllers
                 }
 
                 var customerDTOResult = _mapper.Map<CustomerDTO>(customer);
-                Debug.WriteLine($"Returning CustomerDTO: {customerDTOResult.CustomerID}");
+                Debug.WriteLine($"Returning CustomerDTO: {customerDTOResult.CustomerId}");
                 return Ok(customerDTOResult);
             }
             catch (Exception ex)
@@ -111,18 +112,18 @@ namespace ConcertBooking.API.Controllers
         [HttpPost("getBookings")]
         public async Task<IActionResult> GetCustomerBookings([FromBody] CustomerDTO customerDTO)
         {
-            if (customerDTO == null || customerDTO.CustomerID <= 0)
+            if (customerDTO == null || customerDTO.CustomerId <= 0)
             {
                 return BadRequest("Invalid customer data.");
             }
 
             try
             {
-                var customer = await _unitOfWork.Customers.GetCustomerByIdAsync(customerDTO.CustomerID);
+                var customer = await _unitOfWork.Customers.GetCustomerByIdAsync(customerDTO.CustomerId);
                 if (customer == null)
                     return NotFound();
 
-                var bookings = await _unitOfWork.Bookings.GetAllBookingsByCustomerIdAsync(customerDTO.CustomerID);
+                var bookings = await _unitOfWork.Bookings.GetAllBookingsByCustomerIdAsync(customerDTO.CustomerId);
                 var bookingDTOs = _mapper.Map<IEnumerable<BookingDTO>>(bookings);
                 return Ok(bookingDTOs);
             }
@@ -135,7 +136,7 @@ namespace ConcertBooking.API.Controllers
 
         // PUT: update customer
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateCustomer([FromBody] UpdateCustomerDTO updateDTO)
+        public async Task<IActionResult> UpdateCustomer([FromBody] CustomerUpdateDTO updateDTO)
         {
             try
             {
