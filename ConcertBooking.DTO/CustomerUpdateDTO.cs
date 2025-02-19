@@ -1,4 +1,4 @@
-﻿namespace DMA_AU24_LAB2_Group4.Data.DTO
+﻿namespace ConcertBooking.Data.DTO
 {
     public class CustomerUpdateDTO
     {
