@@ -14,7 +14,7 @@ namespace ConcertBooking.API.Profiles
             // Note that ConcertTitle does not exists in the Performance entity, it is a derived property from the Concert entity.
 
             CreateMap<Performance, PerformanceDTO>()
-                .ForMember(dest => dest.ID, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.PerformanceDate, opt => opt.MapFrom(src => src.PerformanceDateAndTime))
                 .ForMember(dest => dest.Venue, opt => opt.MapFrom(src => src.Venue))
                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
@@ -25,7 +25,7 @@ namespace ConcertBooking.API.Profiles
             // Note that ConcertTitle does not exists in the Performance entity, it is a derived property from the Concert entity.
 
             CreateMap<PerformanceDTO, Performance>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID))
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.PerformanceDateAndTime, opt => opt.MapFrom(src => src.PerformanceDate))
                 .ForMember(dest => dest.Venue, opt => opt.MapFrom(src => src.Venue))
                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
