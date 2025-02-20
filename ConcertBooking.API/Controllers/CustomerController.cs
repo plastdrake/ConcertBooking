@@ -4,6 +4,7 @@ using ConcertBooking.DTO;
 using ConcertBooking.Data.Entity;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using ConcertBooking.Data.DTO;
 
 namespace ConcertBooking.API.Controllers
 {
@@ -22,7 +23,7 @@ namespace ConcertBooking.API.Controllers
 
         // POST: api/Customer/register
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterCustomerDTO registerDTO)
+        public async Task<IActionResult> Register([FromBody] CustomerRegisterDTO registerDTO)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -44,7 +45,7 @@ namespace ConcertBooking.API.Controllers
 
                 // Return the created customer
                 var customerDTO = _mapper.Map<CustomerDTO>(customer);
-                return CreatedAtAction(nameof(GetCustomerById), new { id = customer.Id }, customerDTO);
+                return CreatedAtAction(nameof(GetCustomerById), new { Id = customer.Id }, customerDTO);
             }
             catch (Exception ex)
             {
@@ -66,7 +67,7 @@ namespace ConcertBooking.API.Controllers
 
                 if (customer == null || customer.Password != loginDTO.Password) // Enkel lösenordskontroll
                 {
-                    return Unauthorized("Invalid email or password.");
+                    return Unauthorized("InValid email or password.");
                 }
 
                 // Create and return customer DTO
@@ -79,15 +80,15 @@ namespace ConcertBooking.API.Controllers
             }
         }
 
-        // GET: api/Customer/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCustomerById(int id)
+        // GET: api/Customer/{Id}
+        [HttpGet("{Id}")]
+        public async Task<IActionResult> GetCustomerById(int Id)
         {
             try
             {
-                Debug.WriteLine($"Received CustomerId: {id}");
+                Debug.WriteLine($"Received CustomerId: {Id}");
 
-                var customer = await _unitOfWork.Customers.GetCustomerByIdAsync(id);
+                var customer = await _unitOfWork.Customers.GetCustomerByIdAsync(Id);
                 if (customer == null)
                 {
                     Debug.WriteLine("Customer not found.");
@@ -95,7 +96,7 @@ namespace ConcertBooking.API.Controllers
                 }
 
                 var customerDTOResult = _mapper.Map<CustomerDTO>(customer);
-                Debug.WriteLine($"Returning CustomerDTO: {customerDTOResult.CustomerID}");
+                Debug.WriteLine($"Returning CustomerDTO: {customerDTOResult.CustomerId}");
                 return Ok(customerDTOResult);
             }
             catch (Exception ex)
@@ -111,18 +112,18 @@ namespace ConcertBooking.API.Controllers
         [HttpPost("getBookings")]
         public async Task<IActionResult> GetCustomerBookings([FromBody] CustomerDTO customerDTO)
         {
-            if (customerDTO == null || customerDTO.CustomerID <= 0)
+            if (customerDTO == null || customerDTO.CustomerId <= 0)
             {
-                return BadRequest("Invalid customer data.");
+                return BadRequest("InValid customer data.");
             }
 
             try
             {
-                var customer = await _unitOfWork.Customers.GetCustomerByIdAsync(customerDTO.CustomerID);
+                var customer = await _unitOfWork.Customers.GetCustomerByIdAsync(customerDTO.CustomerId);
                 if (customer == null)
                     return NotFound();
 
-                var bookings = await _unitOfWork.Bookings.GetAllBookingsByCustomerIdAsync(customerDTO.CustomerID);
+                var bookings = await _unitOfWork.Bookings.GetAllBookingsByCustomerIdAsync(customerDTO.CustomerId);
                 var bookingDTOs = _mapper.Map<IEnumerable<BookingDTO>>(bookings);
                 return Ok(bookingDTOs);
             }
@@ -135,7 +136,7 @@ namespace ConcertBooking.API.Controllers
 
         // PUT: Update customer
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateCustomer([FromBody] UpdateCustomerDTO updateDTO)
+        public async Task<IActionResult> UpdateCustomer([FromBody] CustomerUpdateDTO updateDTO)
         {
             try
             {
