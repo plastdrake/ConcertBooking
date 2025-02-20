@@ -1,13 +1,15 @@
 ﻿using AutoMapper;
+using ConcertBooking.Data.Repository;
 using ConcertBooking.DTO;
-using ConcertBooking.Data.Repository;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using ConcertBooking.Data.Repository;
 
 namespace ConcertBooking.API.Controllers
 {
+    public enum ConcertErrorCode
+    {
+        ConcertIDNotFound,
+    }
+
     [ApiController]
     [Route("api/[controller]")]
     public class ConcertController : ControllerBase
@@ -34,10 +36,12 @@ namespace ConcertBooking.API.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var concert = await _unitOfWork.Concerts.GetConcertAsync(id);
+
             if (concert == null)
             {
-                return NotFound("Concert ID not found.");
+                return NotFound(ConcertErrorCode.ConcertIDNotFound.ToString());
             }
+
             return Ok(_mapper.Map<ConcertDTO>(concert));
         }
     }

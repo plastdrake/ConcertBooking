@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
-using ConcertBooking.Data.DTO;
-using ConcertBooking.Data.Entity;
 using ConcertBooking.Data.Repository;
 using ConcertBooking.DTO;
+using ConcertBooking.Data.Entity;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -23,14 +22,14 @@ namespace ConcertBooking.API.Controllers
 
         // POST: api/Customer/register
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] CustomerRegisterDTO registerDTO)
+        public async Task<IActionResult> Register([FromBody] RegisterCustomerDTO registerDTO)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                // Control if email already exists
+                // Check if email already exists
                 if (await _unitOfWork.Customers.EmailExistsAsync(registerDTO.Email))
                 {
                     return BadRequest("Email is already in use.");
@@ -96,7 +95,7 @@ namespace ConcertBooking.API.Controllers
                 }
 
                 var customerDTOResult = _mapper.Map<CustomerDTO>(customer);
-                Debug.WriteLine($"Returning CustomerDTO: {customerDTOResult.CustomerId}");
+                Debug.WriteLine($"Returning CustomerDTO: {customerDTOResult.CustomerID}");
                 return Ok(customerDTOResult);
             }
             catch (Exception ex)
@@ -112,18 +111,18 @@ namespace ConcertBooking.API.Controllers
         [HttpPost("getBookings")]
         public async Task<IActionResult> GetCustomerBookings([FromBody] CustomerDTO customerDTO)
         {
-            if (customerDTO == null || customerDTO.CustomerId <= 0)
+            if (customerDTO == null || customerDTO.CustomerID <= 0)
             {
                 return BadRequest("Invalid customer data.");
             }
 
             try
             {
-                var customer = await _unitOfWork.Customers.GetCustomerByIdAsync(customerDTO.CustomerId);
+                var customer = await _unitOfWork.Customers.GetCustomerByIdAsync(customerDTO.CustomerID);
                 if (customer == null)
                     return NotFound();
 
-                var bookings = await _unitOfWork.Bookings.GetAllBookingsByCustomerIdAsync(customerDTO.CustomerId);
+                var bookings = await _unitOfWork.Bookings.GetAllBookingsByCustomerIdAsync(customerDTO.CustomerID);
                 var bookingDTOs = _mapper.Map<IEnumerable<BookingDTO>>(bookings);
                 return Ok(bookingDTOs);
             }
@@ -134,9 +133,9 @@ namespace ConcertBooking.API.Controllers
         }
 
 
-        // PUT: update customer
+        // PUT: Update customer
         [HttpPut("update")]
-        public async Task<IActionResult> UpdateCustomer([FromBody] CustomerUpdateDTO updateDTO)
+        public async Task<IActionResult> UpdateCustomer([FromBody] UpdateCustomerDTO updateDTO)
         {
             try
             {
@@ -145,12 +144,12 @@ namespace ConcertBooking.API.Controllers
                 if (customer == null)
                     return NotFound();
 
-                // update customer
+                // Update customer
                 _mapper.Map(updateDTO, customer);
                 _unitOfWork.Customers.UpdateCustomer(customer);
                 await _unitOfWork.SaveChangesAsync();
 
-                return Ok("Profile updated successfully.");
+                return Ok("Customer updated successfully.");
             }
             catch (Exception ex)
             {

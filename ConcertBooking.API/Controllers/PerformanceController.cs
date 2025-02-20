@@ -1,16 +1,16 @@
 ﻿using AutoMapper;
-using ConcertBooking.Data.DTO;
-using ConcertBooking.Data.Entity;
-using ConcertBooking.Data.Repository;
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
 using ConcertBooking.Data.Repository;
 using ConcertBooking.DTO;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ConcertBooking.API.Controllers
 {
+    public enum PerformanceErrorCode
+    {
+        PerformanceIdNotFound,
+        InvalidPerformanceId
+    }
+
     [ApiController]
     [Route("api/[controller]")]
     public class PerformanceController : ControllerBase
@@ -37,10 +37,12 @@ namespace ConcertBooking.API.Controllers
         public async Task<IActionResult> GetByConcertId(int id)
         {
             var performances = await _unitOfWork.Performances.GetPerformancesByConcertIdAsync(id);
+
             if (!performances.Any())
             {
-                return NotFound("Performance ID not found.");
+                return NotFound(PerformanceErrorCode.PerformanceIdNotFound.ToString());
             }
+
             return Ok(_mapper.Map<IEnumerable<PerformanceDTO>>(performances));
         }
 
@@ -57,10 +59,12 @@ namespace ConcertBooking.API.Controllers
         public async Task<IActionResult> GetPerformanceById(int id)
         {
             var performance = await _unitOfWork.Performances.GetPerformanceByIdAsync(id);
+
             if (performance == null)
             {
-                return NotFound("Performance ID not found.");
+                return NotFound(PerformanceErrorCode.PerformanceIdNotFound.ToString());
             }
+
             return Ok(_mapper.Map<PerformanceDTO>(performance));
         }
     }
