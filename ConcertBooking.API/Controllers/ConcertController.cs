@@ -35,7 +35,7 @@ namespace ConcertBooking.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var concert = await _unitOfWork.Concerts.GetConcertAsync(id);
+            var concert = await _unitOfWork.Concerts.GetConcertByIdAsync(id);
 
             if (concert == null)
             {

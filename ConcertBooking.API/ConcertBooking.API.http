@@ -1,6 +1,14 @@
-@ConcertBooking.API_HostAddress = http://localhost:5241
+@ConcertBooking = https://localhost:5001
 
-GET {{ConcertBooking.API_HostAddress}}/weatherforecast/
+### Get all bookings
+GET {{ConcertBooking}}/api/bookings
 Accept: application/json
 
-###
+### Add a booking
+POST {{ConcertBooking}}/api/bookings
+Accept: application/json
+Content-Type: application/json
+{
+  "CustomerId": 1,
+  "PerforamnceId":7
+}

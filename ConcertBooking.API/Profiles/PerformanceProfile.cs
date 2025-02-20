@@ -11,7 +11,6 @@ namespace ConcertBooking.API.Profiles
         public PerformanceProfile()
         {
             // Map Entity to DTO
-            // Note that ConcertTitle does not exists in the Performance entity, it is a derived property from the Concert entity.
 
             CreateMap<Performance, PerformanceDTO>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
@@ -22,7 +21,6 @@ namespace ConcertBooking.API.Profiles
                 .ForPath(dest => dest.ConcertTitle, opt => opt.MapFrom(src => src.Concert.Title));
 
             // Map DTO to Entity
-            // Note that ConcertTitle does not exists in the Performance entity, it is a derived property from the Concert entity.
 
             CreateMap<PerformanceDTO, Performance>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
