@@ -21,7 +21,6 @@ namespace ConcertBooking.MAUI.Services
         Task<bool> RegisterCustomerDataAsync(Customer customer);
         Task<Customer?> LoginAsync(string email, string password);
         Task<Customer?> GetProfileAsync(int customerId);
-        Task<bool> UpdateProfileAsync(Customer customer);
 
         Task<ObservableCollection<Concert>?> RefreshConcertDataAsync();
         Task<Concert?> GetConcertByIdAsync(int id);

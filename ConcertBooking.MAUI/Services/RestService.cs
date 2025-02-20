@@ -99,6 +99,11 @@ _client = new HttpClient();
                     Debug.WriteLine(@"\tBooking successfully deleted.");
                     return true;
                 }
+                else
+                {
+                    Debug.WriteLine(@"\tERROR: {0}", response.ReasonPhrase);
+                    return false;
+                }
             }
             catch (Exception ex)
             {
