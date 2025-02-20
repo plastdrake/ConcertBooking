@@ -9,7 +9,7 @@ namespace ConcertBooking.MAUI.Profiles
         public PerformanceProfile()
         {
             CreateMap<Performance, PerformanceDTO>()
-                .ForMember(dest => dest.ID, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.PerformanceDate, opt => opt.MapFrom(src => src.PerformanceDateAndTime))
                 .ForMember(dest => dest.Venue, opt => opt.MapFrom(src => src.Venue))
                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
@@ -17,7 +17,7 @@ namespace ConcertBooking.MAUI.Profiles
                 .ForPath(dest => dest.ConcertTitle, opt => opt.MapFrom(src => src.Concert.Title));
 
             CreateMap<PerformanceDTO, Performance>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ID))
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.PerformanceDateAndTime, opt => opt.MapFrom(src => src.PerformanceDate))
                 .ForMember(dest => dest.Venue, opt => opt.MapFrom(src => src.Venue))
                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
