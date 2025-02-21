@@ -3,12 +3,10 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:ConcertBooking.MAUI.Views"
-    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-    Title="Bookings">
-
-    <ContentPage.Resources>
-        <local:BindingProxy x:Key="ViewModelProxy" Binding="{Binding}" />
-    </ContentPage.Resources>
+    xmlns:models="clr-namespace:ConcertBooking.MAUI.Models"
+    xmlns:vm="clr-namespace:ConcertBooking.MAUI.ViewModels"
+    Title="Bookings"
+    x:DataType="vm:BookingViewModel">
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Command="{Binding LogoutCommand}" Text="Logout" />
@@ -16,7 +14,6 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="10" Spacing="10">
-            <!--  Available Concerts Section  -->
             <Label
                 FontAttributes="Bold"
                 FontSize="20"
@@ -26,24 +23,21 @@
                 IsVisible="{Binding IsConcertsView}"
                 ItemsSource="{Binding ConcertItems}">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="models:Concert">
                         <Frame
                             Margin="5"
                             Padding="10"
                             BackgroundColor="LightGray"
                             CornerRadius="5">
                             <VerticalStackLayout>
-                                <!--  Concert Title and Description  -->
                                 <Label
                                     FontAttributes="Bold"
                                     FontSize="18"
                                     Text="{Binding Title}" />
                                 <Label FontSize="16" Text="{Binding Description}" />
-
-                                <!--  Performances Indented  -->
                                 <CollectionView Margin="10,5,0,5" ItemsSource="{Binding Performances}">
                                     <CollectionView.ItemTemplate>
-                                        <DataTemplate>
+                                        <DataTemplate x:DataType="models:Performance">
                                             <Frame
                                                 Margin="5"
                                                 Padding="10"
@@ -56,7 +50,7 @@
                                                         Text="{Binding Venue}" />
                                                     <Label FontSize="14" Text="{Binding PerformanceDateAndTime, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" />
                                                     <Button
-                                                        Command="{Binding Source={StaticResource ViewModelProxy}, Path=Binding.BookPerformanceAsyncCommand}"
+                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:BookingViewModel}}, Path=BookPerformanceAsyncCommand}"
                                                         CommandParameter="{Binding .}"
                                                         Text="Book" />
                                                 </VerticalStackLayout>
@@ -70,7 +64,6 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
 
-            <!--  Bookings Section  -->
             <Label
                 FontAttributes="Bold"
                 FontSize="20"
@@ -80,7 +73,7 @@
                 IsVisible="{Binding IsBookingsView}"
                 ItemsSource="{Binding Bookings}">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="models:Booking">
                         <Frame
                             Margin="5"
                             Padding="10"
@@ -94,7 +87,7 @@
                                 <Label FontSize="14" Text="{Binding PerformanceDate, StringFormat='Date: {0:dd MMM yyyy}'}" />
                                 <Label FontSize="14" Text="{Binding Venue}" />
                                 <Button
-                                    Command="{Binding Source={StaticResource ViewModelProxy}, Path=Binding.CancelBookingAsyncCommand}"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:BookingViewModel}}, Path=CancelBookingAsyncCommand}"
                                     CommandParameter="{Binding .}"
                                     Text="Cancel Booking" />
                             </VerticalStackLayout>

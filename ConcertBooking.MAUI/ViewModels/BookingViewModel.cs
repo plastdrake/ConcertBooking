@@ -37,6 +37,7 @@ namespace ConcertBooking.MAUI.ViewModels
 
         public BookingViewModel(IRestService restService)
         {
+            Debug.WriteLine("BookingViewModel constructor called");
             _restService = restService;
             concertItems = new ObservableCollection<Concert>();
             performances = new ObservableCollection<Performance>();
@@ -80,13 +81,14 @@ namespace ConcertBooking.MAUI.ViewModels
         {
             if (concert == null) return;
 
+            Debug.WriteLine($"Loading performances for concert {concert.Id}");
             var fetchedPerformances = await _restService.GetPerformancesAsync(concert.Id, GetCustomerId());
             if (fetchedPerformances != null)
             {
-                Performances.Clear();
+                concert.Performances.Clear();
                 foreach (var performance in fetchedPerformances)
                 {
-                    Performances.Add(performance);
+                    concert.Performances.Add(performance);
                 }
             }
         }
