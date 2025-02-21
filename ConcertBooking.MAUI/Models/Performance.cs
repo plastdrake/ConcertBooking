@@ -13,6 +13,7 @@ namespace ConcertBooking.MAUI.Models
         public string Venue { get; set; } = null!;
         public string City { get; set; } = null!;
         public string Country { get; set; } = null!;
+        public int ConcertId { get; set; } = 0!;
 
         //Navigation properties
         public Concert? Concert { get; set; }

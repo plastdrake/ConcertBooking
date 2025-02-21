@@ -1,12 +1,58 @@
-<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="ConcertBooking.MAUI.Views.BookingPage"
-             Title="BookingPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             Title="Bookings">
+
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior EventName="Loaded" Command="{Binding LoadDataCommand}" />
+    </ContentPage.Behaviors>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="10" Spacing="10">
+            <CollectionView x:Name="ConcertsView" ItemsSource="{Binding ConcertItems}" IsVisible="{Binding IsConcertsView}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" Margin="5" BackgroundColor="LightGray" CornerRadius="5">
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:BookingViewModel}}, Path=ShowPerformancesCommand}" CommandParameter="{Binding}" />
+                            </Frame.GestureRecognizers>
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Title}" FontSize="18" FontAttributes="Bold" />
+                                <Label Text="{Binding Description}" FontSize="16" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <CollectionView x:Name="PerformancesView" ItemsSource="{Binding Performances}" IsVisible="{Binding IsPerformancesView}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" Margin="5" BackgroundColor="LightGray" CornerRadius="5">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding Venue}" FontSize="18" FontAttributes="Bold" />
+                                <Label Text="{Binding PerformanceDateAndTime, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" FontSize="14" />
+                                <Button Text="Book" Command="{Binding BookPerformanceAsyncCommand}" CommandParameter="{Binding .}" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <CollectionView x:Name="BookingsView" ItemsSource="{Binding Bookings}" IsVisible="{Binding IsBookingsView}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Padding="10" Margin="5" BackgroundColor="LightGray" CornerRadius="5">
+                            <VerticalStackLayout>
+                                <Label Text="{Binding ConcertTitle}" FontSize="18" FontAttributes="Bold" />
+                                <Label Text="{Binding PerformanceDate, StringFormat='Date: {0:dd MMM yyyy}'}" FontSize="14" />
+                                <Label Text="{Binding Venue}" FontSize="14" />
+                            </VerticalStackLayout>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

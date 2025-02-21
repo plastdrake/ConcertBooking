@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CommunityToolkit.Maui;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using ConcertBooking.MAUI.Services;
 using ConcertBooking.MAUI.ViewModels;
@@ -16,6 +17,7 @@ namespace ConcertBooking.MAUI
 
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -25,6 +27,9 @@ namespace ConcertBooking.MAUI
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
+            builder.Services.AddTransient<IRestService, RestService>();
+            builder.Services.AddTransient<BookingViewModel>();
+            builder.Services.AddTransient<BookingPage>();
 
             // Register HttpClient Handler Service
             builder.Services.AddSingleton<IHttpsClientHandlerService, HttpsClientHandlerService>();
