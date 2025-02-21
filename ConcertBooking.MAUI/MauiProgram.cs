@@ -47,7 +47,7 @@ namespace ConcertBooking.MAUI
 
             // Register ViewModels
             builder.Services.AddTransient<UserLoginViewModel>();
-            builder.Services.AddTransient<BookingViewModel>();
+            builder.Services.AddSingleton<BookingViewModel>();
             builder.Services.AddTransient<UserRegistrationViewModel>();
 
             return builder.Build();

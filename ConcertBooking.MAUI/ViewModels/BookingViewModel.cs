@@ -5,8 +5,6 @@ using ConcertBooking.MAUI.Services;
 using ConcertBooking.DTO;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ConcertBooking.MAUI.ViewModels
 {
@@ -93,10 +91,10 @@ namespace ConcertBooking.MAUI.ViewModels
             }
         }
 
-        [RelayCommand]
         public async Task BookPerformanceAsync(Performance performance)
         {
             Debug.WriteLine("BookPerformanceAsync called");
+
             if (performance == null)
             {
                 Debug.WriteLine("Performance is null");
@@ -106,6 +104,7 @@ namespace ConcertBooking.MAUI.ViewModels
             Debug.WriteLine($"Booking performance {performance.Id}");
             var bookingDto = new BookingCreateDTO { CustomerId = GetCustomerId(), PerformanceId = performance.Id };
             var success = await _restService.CreateBookingAsync(bookingDto);
+
             if (success)
             {
                 Debug.WriteLine("Booking successful");
@@ -133,27 +132,30 @@ namespace ConcertBooking.MAUI.ViewModels
             }
         }
 
-        [RelayCommand]
-        public async Task CancelBookingAsync(Booking booking)
+        public async Task<bool> CancelBookingAsync(Booking booking)
         {
             Debug.WriteLine("CancelBookingAsync called");
+
             if (booking == null)
             {
                 Debug.WriteLine("Booking is null");
-                return;
+                return false;
             }
 
             Debug.WriteLine($"Cancelling booking {booking.BookingId}");
             var success = await _restService.DeleteBookingAsync(booking.BookingId);
+
             if (success)
             {
                 Debug.WriteLine("Cancellation successful");
                 await LoadBookingsAsync();
+                return true;
             }
             else
             {
                 Debug.WriteLine("Cancellation failed");
                 await Application.Current.MainPage.DisplayAlert("Error", "Failed to cancel booking.", "OK");
+                return false;
             }
         }
 

@@ -18,10 +18,7 @@
                 FontAttributes="Bold"
                 FontSize="20"
                 Text="Available Concerts" />
-            <CollectionView
-                x:Name="ConcertsView"
-                IsVisible="{Binding IsConcertsView}"
-                ItemsSource="{Binding ConcertItems}">
+            <CollectionView x:Name="ConcertsView" ItemsSource="{Binding ConcertItems}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Concert">
                         <Frame
@@ -50,7 +47,7 @@
                                                         Text="{Binding Venue}" />
                                                     <Label FontSize="14" Text="{Binding PerformanceDateAndTime, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" />
                                                     <Button
-                                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:BookingViewModel}}, Path=BookPerformanceAsyncCommand}"
+                                                        Clicked="OnBookButtonClicked"
                                                         CommandParameter="{Binding .}"
                                                         Text="Book" />
                                                 </VerticalStackLayout>
@@ -87,7 +84,7 @@
                                 <Label FontSize="14" Text="{Binding PerformanceDate, StringFormat='Date: {0:dd MMM yyyy}'}" />
                                 <Label FontSize="14" Text="{Binding Venue}" />
                                 <Button
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:BookingViewModel}}, Path=CancelBookingAsyncCommand}"
+                                    Clicked="OnCancelBookingButtonClicked"
                                     CommandParameter="{Binding .}"
                                     Text="Cancel Booking" />
                             </VerticalStackLayout>

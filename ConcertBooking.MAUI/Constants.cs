@@ -22,6 +22,7 @@ namespace ConcertBooking.MAUI
 
         // REST URLs for endpoints
         public static string BookingUrl = $"{RestUrl}/booking/{{0}}";
+        public static string CreateBookingUrl = $"{RestUrl}/booking";
         public static string CustomerRegisterUrl = $"{RestUrl}/customer/register";
         public static string CustomerLoginUrl = $"{RestUrl}/customer/login";
         public static string ConcertUrl = $"{RestUrl}/concert/{{0}}";

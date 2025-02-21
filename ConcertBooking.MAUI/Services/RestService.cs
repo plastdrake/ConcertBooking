@@ -70,7 +70,7 @@ namespace ConcertBooking.MAUI.Services
 
         public async Task<bool> CreateBookingAsync(BookingCreateDTO bookingDto)
         {
-            return await PostAsync(Constants.BookingUrl, bookingDto);
+            return await PostAsync(Constants.CreateBookingUrl, bookingDto);
         }
 
         public async Task<IEnumerable<Booking>> GetBookingsByCustomerIdAsync(int customerId)
