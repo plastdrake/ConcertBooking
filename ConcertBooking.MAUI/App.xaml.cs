@@ -1,11 +1,12 @@
-﻿namespace ConcertBooking.MAUI
+﻿using ConcertBooking.MAUI.Views;
+
+namespace ConcertBooking.MAUI
 {
     public partial class App : Application
     {
         public App()
         {
             InitializeComponent();
-
             MainPage = new AppShell();
         }
     }

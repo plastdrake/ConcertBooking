@@ -1,12 +1,33 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ConcertBooking.MAUI.Views.UserLoginPage"
-             Title="UserLoginPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+<ContentPage
+    x:Class="ConcertBooking.MAUI.Views.UserLoginPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Login">
+
+    <VerticalStackLayout Padding="20">
+        <!--  Email Entry  -->
+        <Entry Placeholder="Email" Text="{Binding Email}" />
+
+        <!--  Password Entry  -->
+        <Entry
+            IsPassword="True"
+            Placeholder="Password"
+            Text="{Binding Password}" />
+
+        <!--  Login Button  -->
+        <Button Command="{Binding LoginCommand}" Text="Login" />
+
+        <!--  Register Label  -->
+        <Label
+            HorizontalOptions="Center"
+            Text="Don't have an account? Register here"
+            TextColor="Blue">
+            <Label.GestureRecognizers>
+                <!--  Navigate to Register Page  -->
+                <TapGestureRecognizer Command="{Binding NavigateToRegisterCommand}" />
+            </Label.GestureRecognizers>
+        </Label>
     </VerticalStackLayout>
+
 </ContentPage>
