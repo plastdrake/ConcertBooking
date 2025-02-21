@@ -1,12 +1,60 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ConcertBooking.MAUI.Views.UserRegistrationPage"
-             Title="UserRegistrationPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+<ContentPage
+    x:Class="ConcertBooking.MAUI.Views.UserRegistrationPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewmodels="clr-namespace:ConcertBooking.MAUI.ViewModels"
+    Title="User Registration">
+
+    <VerticalStackLayout Padding="20" Spacing="15">
+        <!--  First Name  -->
+        <Entry Placeholder="First Name" Text="{Binding FirstName}" />
+        <Label
+            IsVisible="{Binding FirstNameError, Converter={StaticResource ErrorVisibilityConverter}}"
+            Text="{Binding FirstNameError}"
+            TextColor="Red" />
+
+        <!--  Last Name  -->
+        <Entry Placeholder="Last Name" Text="{Binding LastName}" />
+        <Label
+            IsVisible="{Binding LastNameError, Converter={StaticResource ErrorVisibilityConverter}}"
+            Text="{Binding LastNameError}"
+            TextColor="Red" />
+
+        <!--  Email  -->
+        <Entry
+            Keyboard="Email"
+            Placeholder="Email"
+            Text="{Binding Email}" />
+        <Label
+            IsVisible="{Binding EmailError, Converter={StaticResource ErrorVisibilityConverter}}"
+            Text="{Binding EmailError}"
+            TextColor="Red" />
+
+        <!--  Password  -->
+        <Entry
+            IsPassword="True"
+            Placeholder="Password"
+            Text="{Binding Password}" />
+        <Label
+            IsVisible="{Binding PasswordError, Converter={StaticResource ErrorVisibilityConverter}}"
+            Text="{Binding PasswordError}"
+            TextColor="Red" />
+
+        <!--  Confirm Password  -->
+        <Entry
+            IsPassword="True"
+            Placeholder="Confirm Password"
+            Text="{Binding PasswordConfirmation}" />
+        <Label
+            IsVisible="{Binding PasswordConfirmationError, Converter={StaticResource ErrorVisibilityConverter}}"
+            Text="{Binding PasswordConfirmationError}"
+            TextColor="Red" />
+
+        <!--  Register Button  -->
+        <Button Command="{Binding RegisterUserCommand}" Text="Register" />
+
+        <!--  Navigate to Login Button  -->
+        <Button Command="{Binding NavigateToLoginCommand}" Text="Already have an account? Login" />
     </VerticalStackLayout>
 </ContentPage>

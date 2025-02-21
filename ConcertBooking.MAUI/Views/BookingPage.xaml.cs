@@ -12,12 +12,16 @@ namespace ConcertBooking.MAUI.Views
             InitializeComponent();
             _viewModel = viewModel;
             BindingContext = _viewModel;
-
             this.Loaded += BookingPage_Loaded;
         }
 
         private async void BookingPage_Loaded(object sender, EventArgs e)
         {
+            if (!Preferences.Get("IsLoggedIn", false))
+            {
+                await Shell.Current.GoToAsync("//LoginPage");
+                return;
+            }
             await _viewModel.LoadDataAsync();
         }
     }

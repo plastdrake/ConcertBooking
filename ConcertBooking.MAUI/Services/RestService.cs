@@ -1,37 +1,29 @@
 ﻿using AutoMapper;
 using ConcertBooking.DTO;
 using ConcertBooking.MAUI.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace ConcertBooking.MAUI.Services
 {
     public class RestService : IRestService
     {
-        private HttpClient _client;
-        private JsonSerializerOptions _serializerOptions;
-        private IHttpsClientHandlerService _httpsClientHandlerService;
-        private IMapper _mapper;
-        public ObservableCollection<Booking>? Bookings { get; private set; }
+        private readonly HttpClient _client;
+        private readonly JsonSerializerOptions _serializerOptions;
+        private readonly IMapper _mapper;
 
         public RestService(IHttpsClientHandlerService service, IMapper mapper)
         {
             _mapper = mapper;
+
 #if DEBUG
-            _httpsClientHandlerService = service;
-            HttpMessageHandler handler = _httpsClientHandlerService.GetPlatformMessageHandler();
-            if (handler != null)
-                _client = new HttpClient(handler);
-            else
-                _client = new HttpClient();
+            var handler = service.GetPlatformMessageHandler();
+            _client = handler != null ? new HttpClient(handler) : new HttpClient();
 #else
-_client = new HttpClient();
+            _client = new HttpClient();
 #endif
             _serializerOptions = new JsonSerializerOptions
             {
@@ -39,288 +31,204 @@ _client = new HttpClient();
                 WriteIndented = true
             };
         }
-        public async Task<ObservableCollection<Booking>?> RefreshBookingDataAsync()
+
+        public async Task<ObservableCollection<Booking>> RefreshBookingDataAsync()
         {
-            Bookings = new ObservableCollection<Booking>();
-            var uri = new Uri(string.Format(Constants.BookingUrl, string.Empty));
+            var bookings = new ObservableCollection<Booking>();
             try
             {
-                var response = await _client.GetAsync(uri);
+                var response = await _client.GetAsync(string.Format(Constants.BookingUrl, ""));
                 if (response.IsSuccessStatusCode)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var items = JsonSerializer.Deserialize<List<BookingDTO>>(content, _serializerOptions);
+                    var items = await response.Content.ReadFromJsonAsync<List<BookingDTO>>(_serializerOptions);
                     foreach (var item in items)
-                    {
-                        Bookings.Add(_mapper.Map<Booking>(item));
-                    }
+                        bookings.Add(_mapper.Map<Booking>(item));
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
+                Debug.WriteLine($"ERROR: {ex.Message}");
             }
-            return Bookings;
+            return bookings;
         }
-        public async Task SaveBookingAsync(Booking item, bool isNewItem = false)
+
+        public async Task SaveBookingAsync(Booking item, bool isNewItem)
         {
-            var uri = new Uri(string.Format(Constants.BookingUrl, string.Empty));
-            try
-            {
-                var json = JsonSerializer.Serialize(_mapper.Map<BookingDTO>(item), _serializerOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = null;
-                if (isNewItem)
-                {
-                    response = await _client.PostAsync(uri, content);
-                }
-                else
-                {
-                    response = await _client.PutAsync(uri, content);
-                }
-                if (response.IsSuccessStatusCode)
-                {
-                    Debug.WriteLine(@"\tBooking successfully saved.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
-            }
+            var json = JsonSerializer.Serialize(_mapper.Map<BookingDTO>(item), _serializerOptions);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = isNewItem
+                ? await _client.PostAsync(string.Format(Constants.BookingUrl, ""), content)
+                : await _client.PutAsync(string.Format(Constants.BookingUrl, item.BookingId), content);
+            Debug.WriteLine(response.IsSuccessStatusCode ? "Booking successfully saved." : $"ERROR: {response.ReasonPhrase}");
         }
+
         public async Task<bool> DeleteBookingAsync(int id)
         {
-            var uri = new Uri(string.Format(Constants.BookingUrl, id));
-            try
-            {
-                var response = await _client.DeleteAsync(uri);
-                if (response.IsSuccessStatusCode)
-                {
-                    Debug.WriteLine(@"\tBooking successfully deleted.");
-                    return true;
-                }
-                else
-                {
-                    Debug.WriteLine(@"\tERROR: {0}", response.ReasonPhrase);
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
-                return false;
-            }
+            var response = await _client.DeleteAsync(string.Format(Constants.BookingUrl, id));
+            return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> CreateBookingAsync(BookingCreateDTO bookingDto)
         {
-            var uri = new Uri(string.Format(Constants.BookingUrl, string.Empty));
-            try
-            {
-                var json = JsonSerializer.Serialize(bookingDto, _serializerOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await _client.PostAsync(uri, content);
-                if (response.IsSuccessStatusCode)
-                {
-                    Debug.WriteLine(@"\tBooking successfully created.");
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
-            }
-            return false;
+            return await PostAsync(Constants.BookingUrl, bookingDto);
         }
 
         public async Task<IEnumerable<Booking>> GetBookingsByCustomerIdAsync(int customerId)
         {
-            var uri = new Uri($"{Constants.RestUrl}/booking/customer/{customerId}");
             try
             {
-                var response = await _client.GetAsync(uri);
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var items = JsonSerializer.Deserialize<List<BookingDTO>>(content, _serializerOptions);
-                    return items.Select(item => _mapper.Map<Booking>(item));
-                }
+                var response = await _client.GetAsync($"{Constants.RestUrl}/booking/customer/{customerId}");
+                return response.IsSuccessStatusCode
+                    ? (await response.Content.ReadFromJsonAsync<List<BookingDTO>>(_serializerOptions)).Select(_mapper.Map<Booking>)
+                    : Enumerable.Empty<Booking>();
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
+                return Enumerable.Empty<Booking>();
             }
-            return new List<Booking>();
         }
 
         public async Task<Booking?> GetBookingByBookingIdAsync(int bookingId)
         {
-            var uri = new Uri(string.Format(Constants.BookingUrl, bookingId));
-            try
-            {
-                var response = await _client.GetAsync(uri);
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var item = JsonSerializer.Deserialize<BookingDTO>(content, _serializerOptions);
-                    return _mapper.Map<Booking>(item);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
-            }
-            return null;
+            return await GetAsync<BookingDTO, Booking>(string.Format(Constants.BookingUrl, bookingId));
         }
 
         public async Task<bool> RegisterCustomerDataAsync(Customer customer)
         {
-            var uri = new Uri(Constants.CustomerRegisterUrl);
-            try
+            var customerDto = new
             {
-                var json = JsonSerializer.Serialize(_mapper.Map<CustomerDTO>(customer), _serializerOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await _client.PostAsync(uri, content);
-                if (response.IsSuccessStatusCode)
-                {
-                    Debug.WriteLine(@"\tCustomer successfully registered.");
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
-            }
-            return false;
+                firstName = customer.FirstName,
+                lastName = customer.LastName,
+                email = customer.Email,
+                password = customer.Password
+            };
+
+            return await PostAsync(Constants.CustomerRegisterUrl, customerDto);
         }
 
         public async Task<Customer?> LoginAsync(string email, string password)
         {
-            var uri = new Uri($"{Constants.RestUrl}/customer/login/{email}/{password}");
-            try
-            {
-                var response = await _client.GetAsync(uri);
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var item = JsonSerializer.Deserialize<CustomerDTO>(content, _serializerOptions);
-                    return _mapper.Map<Customer>(item);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
-            }
-            return null;
+            return await PostAsync<LoginDTO, CustomerDTO, Customer>(
+                Constants.CustomerLoginUrl,
+                new LoginDTO { Email = email, Password = password }
+            );
         }
 
         public async Task<Customer?> GetProfileAsync(int customerId)
         {
-            var uri = new Uri($"{Constants.RestUrl}/customer/getById/{customerId}");
-            try
-            {
-                var response = await _client.GetAsync(uri);
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var item = JsonSerializer.Deserialize<CustomerDTO>(content, _serializerOptions);
-                    return _mapper.Map<Customer>(item);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
-            }
-            return null;
+            return await GetAsync<CustomerDTO, Customer>($"{Constants.RestUrl}/customer/getById/{customerId}");
         }
 
         public async Task<bool> UpdateProfileAsync(Customer customer)
         {
-            var uri = new Uri(string.Format(Constants.CustomerUpdateUrl, customer.Id));
-            try
-            {
-                var json = JsonSerializer.Serialize(_mapper.Map<CustomerDTO>(customer), _serializerOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await _client.PutAsync(uri, content);
-                if (response.IsSuccessStatusCode)
-                {
-                    Debug.WriteLine(@"\tCustomer successfully updated.");
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
-            }
-            return false;
+            return await PutAsync(string.Format(Constants.CustomerUpdateUrl, customer.Id), _mapper.Map<CustomerDTO>(customer));
         }
 
-        public async Task<ObservableCollection<Concert>?> RefreshConcertDataAsync()
+        public async Task<ObservableCollection<Concert>> RefreshConcertDataAsync()
         {
-            var concerts = new ObservableCollection<Concert>();
-            var uri = new Uri(string.Format(Constants.ConcertUrl, string.Empty));
-            try
-            {
-                var response = await _client.GetAsync(uri);
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var items = JsonSerializer.Deserialize<List<ConcertDTO>>(content, _serializerOptions);
-                    foreach (var item in items)
-                    {
-                        concerts.Add(_mapper.Map<Concert>(item));
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
-            }
-            return concerts;
+            return await GetCollectionAsync<ConcertDTO, Concert>(string.Format(Constants.ConcertUrl, ""));
         }
 
         public async Task<Concert?> GetConcertByIdAsync(int id)
         {
-            var uri = new Uri(string.Format(Constants.ConcertUrl, id));
-            try
-            {
-                var response = await _client.GetAsync(uri);
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var item = JsonSerializer.Deserialize<ConcertDTO>(content, _serializerOptions);
-                    return _mapper.Map<Concert>(item);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
-            }
-            return null;
+            return await GetAsync<ConcertDTO, Concert>(string.Format(Constants.ConcertUrl, id));
         }
 
         public async Task<ObservableCollection<Performance>> GetPerformancesAsync(int concertId, int customerId)
         {
-            var performances = new ObservableCollection<Performance>();
-            var uri = new Uri($"{Constants.RestUrl}/performance/{concertId}/{customerId}");
+            return await GetCollectionAsync<PerformanceDTO, Performance>($"{Constants.RestUrl}/performance/{concertId}/{customerId}");
+        }
+
+        #region Generic Helper Methods
+
+        private async Task<TModel?> GetAsync<TDto, TModel>(string uri)
+        {
+            try
+            {
+                var response = await _client.GetAsync(uri);
+                return response.IsSuccessStatusCode
+                    ? _mapper.Map<TModel>(await response.Content.ReadFromJsonAsync<TDto>(_serializerOptions))
+                    : default;
+            }
+            catch
+            {
+                return default;
+            }
+        }
+
+        private async Task<ObservableCollection<TModel>> GetCollectionAsync<TDto, TModel>(string uri)
+        {
+            var collection = new ObservableCollection<TModel>();
             try
             {
                 var response = await _client.GetAsync(uri);
                 if (response.IsSuccessStatusCode)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var items = JsonSerializer.Deserialize<List<PerformanceDTO>>(content, _serializerOptions);
+                    var items = await response.Content.ReadFromJsonAsync<List<TDto>>(_serializerOptions);
                     foreach (var item in items)
-                    {
-                        performances.Add(_mapper.Map<Performance>(item));
-                    }
+                        collection.Add(_mapper.Map<TModel>(item));
                 }
+            }
+            catch
+            {
+                Debug.WriteLine("Error in GetCollectionAsync");
+            }
+            return collection;
+        }
+
+        private async Task<bool> PostAsync<TDto>(string uri, TDto dto)
+        {
+            try
+            {
+                var content = new StringContent(JsonSerializer.Serialize(dto, _serializerOptions),
+                    Encoding.UTF8, "application/json");
+                var response = await _client.PostAsync(uri, content);
+
+                string responseBody = await response.Content.ReadAsStringAsync();
+                Debug.WriteLine($"API Response: {response.StatusCode} - {responseBody}");
+
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(@"\tERROR {0}", ex.Message);
+                Debug.WriteLine($"Exception in PostAsync: {ex.Message}");
+                return false;
             }
-            return performances;
         }
+
+        private async Task<TResult?> PostAsync<TRequest, TResponse, TResult>(string uri, TRequest dto)
+        {
+            try
+            {
+                var content = new StringContent(JsonSerializer.Serialize(dto, _serializerOptions),
+                    Encoding.UTF8, "application/json");
+                var response = await _client.PostAsync(uri, content);
+
+                return response.IsSuccessStatusCode
+                    ? _mapper.Map<TResult>(await response.Content.ReadFromJsonAsync<TResponse>(_serializerOptions))
+                    : default;
+            }
+            catch
+            {
+                return default;
+            }
+        }
+
+        private async Task<bool> PutAsync<TDto>(string uri, TDto dto)
+        {
+            try
+            {
+                var content = new StringContent(JsonSerializer.Serialize(dto, _serializerOptions),
+                    Encoding.UTF8, "application/json");
+                var response = await _client.PutAsync(uri, content);
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        #endregion
     }
 }

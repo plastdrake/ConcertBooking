@@ -1,9 +1,12 @@
+using ConcertBooking.MAUI.ViewModels;
+
 namespace ConcertBooking.MAUI.Views;
 
 public partial class UserRegistrationPage : ContentPage
 {
-	public UserRegistrationPage()
-	{
-		InitializeComponent();
-	}
+    public UserRegistrationPage(UserRegistrationViewModel viewModel)
+    {
+        InitializeComponent();
+        BindingContext = viewModel;
+    }
 }

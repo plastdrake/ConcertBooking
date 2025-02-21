@@ -27,20 +27,19 @@ namespace ConcertBooking.MAUI
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
-            builder.Services.AddTransient<IRestService, RestService>();
-            builder.Services.AddTransient<BookingViewModel>();
+            // Register Pages
             builder.Services.AddTransient<BookingPage>();
+            builder.Services.AddTransient<UserLoginPage>();
+            builder.Services.AddTransient<UserRegistrationPage>();
 
-            // Register HttpClient Handler Service
+            // Register Shared Services
             builder.Services.AddSingleton<IHttpsClientHandlerService, HttpsClientHandlerService>();
-
-            // Register Core Services
             builder.Services.AddSingleton<IRestService, RestService>();
             builder.Services.AddSingleton<IBookingService, BookingService>();
             builder.Services.AddSingleton<IConcertService, ConcertService>();
             builder.Services.AddSingleton<ICustomerService, CustomerService>();
 
-            // Register AutoMapper and all profiles
+            // Register AutoMapper
             builder.Services.AddSingleton<IMapper>(new MapperConfiguration(cfg =>
             {
                 cfg.AddMaps(typeof(BookingProfile).Assembly); // Automatically loads all profiles
@@ -50,11 +49,6 @@ namespace ConcertBooking.MAUI
             builder.Services.AddTransient<UserLoginViewModel>();
             builder.Services.AddTransient<BookingViewModel>();
             builder.Services.AddTransient<UserRegistrationViewModel>();
-
-            // Register Pages
-            builder.Services.AddTransient<UserLoginPage>();
-            builder.Services.AddTransient<BookingPage>();
-            builder.Services.AddTransient<UserRegistrationPage>();
 
             return builder.Build();
         }

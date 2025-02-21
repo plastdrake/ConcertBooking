@@ -5,6 +5,7 @@ using ConcertBooking.MAUI.Services;
 using ConcertBooking.DTO;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ConcertBooking.MAUI.ViewModels
@@ -26,11 +27,13 @@ namespace ConcertBooking.MAUI.ViewModels
         private bool isConcertsView = true;
 
         [ObservableProperty]
-        private bool isPerformancesView = false;
-
-        [ObservableProperty]
         private bool isBookingsView = false;
 
+        [ObservableProperty]
+        private string availableConcertsTitle = "Available Concerts";
+
+        [ObservableProperty]
+        private string bookedConcertsTitle = "Your Booked Concerts";
 
         public BookingViewModel(IRestService restService)
         {
@@ -44,21 +47,32 @@ namespace ConcertBooking.MAUI.ViewModels
         public async Task LoadDataAsync()
         {
             await LoadConcertsAsync();
+            await LoadBookingsAsync();
+            SetViewState(concertsView: true, bookingsView: true);
         }
 
         [RelayCommand]
         public async Task LoadConcertsAsync()
         {
+            Debug.WriteLine("Starting LoadConcertsAsync");
             var concerts = await _restService.RefreshConcertDataAsync();
+            Debug.WriteLine($"Received concerts: {concerts?.Count ?? 0}");
+
             if (concerts != null)
             {
                 ConcertItems.Clear();
                 foreach (var concert in concerts)
                 {
                     ConcertItems.Add(concert);
+                    Debug.WriteLine($"Added concert: {concert.Title}");
                 }
+                Debug.WriteLine($"Loaded concerts: {ConcertItems.Count} concerts loaded.");
             }
-            SetViewState(concertsView: true);
+            else
+            {
+                Debug.WriteLine("Concerts were null");
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to load concerts.", "OK");
+            }
         }
 
         [RelayCommand]
@@ -66,81 +80,93 @@ namespace ConcertBooking.MAUI.ViewModels
         {
             if (concert == null) return;
 
-            try
+            var fetchedPerformances = await _restService.GetPerformancesAsync(concert.Id, GetCustomerId());
+            if (fetchedPerformances != null)
             {
-                var fetchedPerformances = await _restService.GetPerformancesAsync(concert.Id, GetCustomerId());
-                if (fetchedPerformances != null)
+                Performances.Clear();
+                foreach (var performance in fetchedPerformances)
                 {
-                    performances.Clear();
-                    foreach (var performance in fetchedPerformances)
-                    {
-                        performances.Add(performance);
-                    }
+                    Performances.Add(performance);
                 }
-                SetViewState(performancesView: true);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error loading performances: {ex.Message}");
-                await Application.Current.MainPage.DisplayAlert("Error", "Failed to load performances.", "OK");
             }
         }
-
 
         [RelayCommand]
         public async Task BookPerformanceAsync(Performance performance)
         {
-            if (performance == null) return;
-
-            try
+            Debug.WriteLine("BookPerformanceAsync called");
+            if (performance == null)
             {
-                var bookingDto = new BookingCreateDTO { CustomerId = GetCustomerId(), PerformanceId = performance.Id };
-                var success = await _restService.CreateBookingAsync(bookingDto);
-                if (success)
-                {
-                    await LoadBookingsAsync();
-                    await ShowPerformancesAsync(ConcertItems.FirstOrDefault(c => c.Id == performance.ConcertId));
-                }
-                else
-                {
-                    await Application.Current.MainPage.DisplayAlert("Error", "Failed to create booking.", "OK");
-                }
+                Debug.WriteLine("Performance is null");
+                return;
             }
-            catch (Exception ex)
+
+            Debug.WriteLine($"Booking performance {performance.Id}");
+            var bookingDto = new BookingCreateDTO { CustomerId = GetCustomerId(), PerformanceId = performance.Id };
+            var success = await _restService.CreateBookingAsync(bookingDto);
+            if (success)
             {
-                Debug.WriteLine($"Error booking performance: {ex.Message}");
-                await Application.Current.MainPage.DisplayAlert("Error", "Failed to book performance.", "OK");
+                Debug.WriteLine("Booking successful");
+                await LoadBookingsAsync();
+                await ShowPerformancesAsync(ConcertItems.FirstOrDefault(c => c.Id == performance.ConcertId));
+            }
+            else
+            {
+                Debug.WriteLine("Booking failed");
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to create booking.", "OK");
             }
         }
 
         [RelayCommand]
         public async Task LoadBookingsAsync()
         {
-            try
+            var fetchedBookings = await _restService.GetBookingsByCustomerIdAsync(GetCustomerId());
+            if (fetchedBookings != null)
             {
-                var fetchedBookings = await _restService.GetBookingsByCustomerIdAsync(GetCustomerId());
-                if (fetchedBookings != null)
+                Bookings.Clear();
+                foreach (var booking in fetchedBookings)
                 {
-                    bookings.Clear();
-                    foreach (var booking in fetchedBookings)
-                    {
-                        bookings.Add(booking);
-                    }
+                    Bookings.Add(booking);
                 }
-                SetViewState(bookingsView: true);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error loading bookings: {ex.Message}");
-                await Application.Current.MainPage.DisplayAlert("Error", "Failed to load bookings.", "OK");
             }
         }
 
-        private void SetViewState(bool concertsView = false, bool performancesView = false, bool bookingsView = false)
+        [RelayCommand]
+        public async Task CancelBookingAsync(Booking booking)
         {
-            isConcertsView = concertsView;
-            isPerformancesView = performancesView;
-            isBookingsView = bookingsView;
+            Debug.WriteLine("CancelBookingAsync called");
+            if (booking == null)
+            {
+                Debug.WriteLine("Booking is null");
+                return;
+            }
+
+            Debug.WriteLine($"Cancelling booking {booking.BookingId}");
+            var success = await _restService.DeleteBookingAsync(booking.BookingId);
+            if (success)
+            {
+                Debug.WriteLine("Cancellation successful");
+                await LoadBookingsAsync();
+            }
+            else
+            {
+                Debug.WriteLine("Cancellation failed");
+                await Application.Current.MainPage.DisplayAlert("Error", "Failed to cancel booking.", "OK");
+            }
+        }
+
+        [RelayCommand]
+        public void Logout()
+        {
+            Preferences.Set("IsLoggedIn", false);
+            Preferences.Set("CustomerId", 0);
+            Shell.Current.GoToAsync("//LoginPage");
+        }
+
+        private void SetViewState(bool concertsView = false, bool bookingsView = false)
+        {
+            IsConcertsView = concertsView;
+            IsBookingsView = bookingsView;
         }
 
         private int GetCustomerId()

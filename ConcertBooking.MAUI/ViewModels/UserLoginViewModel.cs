@@ -11,37 +11,32 @@ namespace ConcertBooking.MAUI.ViewModels
     {
         private readonly ICustomerService _customerService;
 
-        // Properties that automatically implement INotifyPropertyChanged
         [ObservableProperty]
         private string email;
 
         [ObservableProperty]
         private string password;
 
-        // Constructor for injecting the service
         public UserLoginViewModel(ICustomerService customerService)
         {
             _customerService = customerService;
         }
 
-        // LoginCommand implemented using RelayCommand
         [RelayCommand]
         public async Task Login()
         {
+            Console.WriteLine("Login command executed.");
             var customer = await _customerService.CustomerLoginAsync(Email, Password);
             if (customer != null)
             {
-                // Clear preferences before saving new customer ID
                 Preferences.Clear();
 
-                // Save the customer ID in preferences
                 Preferences.Set("CustomerId", customer.Id);
                 Preferences.Set("IsLoggedIn", true);
 
                 Debug.WriteLine($"CustomerId saved in Preferences: {customer.Id}");
 
-                // Navigate to ConcertsPage
-                await Shell.Current.GoToAsync("//HomePage");
+                await Shell.Current.GoToAsync("//BookingPage");
             }
             else
             {
@@ -49,11 +44,10 @@ namespace ConcertBooking.MAUI.ViewModels
             }
         }
 
-        // NavigateToRegisterCommand implemented using RelayCommand
         [RelayCommand]
         public async Task NavigateToRegister()
         {
-            await Shell.Current.GoToAsync("RegisterPage");
+            await Shell.Current.GoToAsync("//UserRegistrationPage");
         }
     }
 }
